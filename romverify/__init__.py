@@ -1,1 +1,7 @@
-__all__ = ['main.py', 'file_handler.py']
+__all__ = [
+    'main',
+    'config',
+    'datfiles',
+    'filehandler',
+    'romsorter'
+]
