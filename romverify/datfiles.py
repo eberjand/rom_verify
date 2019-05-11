@@ -30,7 +30,11 @@ class DatReader:
             self.readfile(os.path.join(data_dir, datfile), header_only, True)
 
     def readfile(self, datfile, header_only=False, verify_filename=False):
-        tree = ET.parse(FileHandler(datfile).open())
+        try:
+            tree = ET.parse(FileHandler(datfile).open())
+        except:
+            # A parse error occurred such as xml.etree.ElementTree.ParseError
+            return (None, None)
         root = tree.getroot()
         header = root.find('header')
         console_name = header.find('name').text
@@ -49,10 +53,10 @@ class DatReader:
     def readfile_checksums(self, xml_root, console_name):
         for game_entry in xml_root.findall('game'):
             rom = game_entry.find('rom')
-            romfile = rom.attrib['name']
-            sha1 = rom.attrib['sha1']
-            #crc = rom.attrib['crc']
-            #md5 = rom.attrib['md5']
+            romfile = rom.attrib.get('name')
+            sha1 = rom.attrib.get('sha1')
+            if romfile is None or sha1 is None:
+                continue
             #if sha1 in self.games_by_sha1:
             #    print('WARNING: Duplicate checksum in both "%s" and "%s"' %
             #        (self.games_by_sha1[sha1][0], console_name))
@@ -63,6 +67,7 @@ def install_dat_file(datfile, force=False):
     print('Processing:', datfile)
     (console_name, version) = DatReader().readfile(datfile, header_only=True)
     if console_name is None:
+        print('  Invalid DAT file')
         return
     print('  Console:', console_name)
     print('  Version:', version)
