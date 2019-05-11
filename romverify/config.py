@@ -15,4 +15,5 @@ class Config(ConfigParser):
         ConfigParser.read(self, self.filename)
     def save(self):
         os.makedirs(os.path.dirname(self.filename), exist_ok=True)
-        ConfigParser.write(self, self.filename)
+        with open(self.filename, 'w') as fp:
+            ConfigParser.write(self, fp)

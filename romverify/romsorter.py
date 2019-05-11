@@ -72,36 +72,35 @@ class RomSorter:
         print('  ROM name:', rom_desc[1])
         return rom_desc
 
-def set_sorting_dirs(datreader, opt_list):
+def set_sorting_dir(datreader, console, path):
     config = Config()
     if 'sorting' not in config:
         config['sorting'] = {}
     is_modified = False
     # Allow shortened names without vendor, like "Nintendo DS" for "Nintendo - Nintendo DS"
     shortened_consoles = {}
-    for console in datreader.consoles:
-        splits = console.split(' - ', maxsplit=1)
+    for full_console in datreader.consoles:
+        splits = full_console.split(' - ', maxsplit=1)
         if len(splits) == 2:
             shortname = splits[1]
             # Don't allow ambiguous short names
             if shortname in shortened_consoles:
                 shortened_consoles[shortname] = None
                 continue
-            shortened_consoles[shortname] = console
-    for opt in opt_list:
-        splits = opt.split(':', maxsplit=1)
-        if len(splits) != 2:
-            print('ERROR: Invalid format in "%s"', opt)
-            print('       Sorting directories should be specified as "Console Name:/path/to/dir"')
-            continue
-        console = splits[0]
-        if console not in datreader.consoles:
-            console = shortened_consoles.get(console)
-            if console is None:
-                print('ERROR: Unknown console:', splits[0])
-                print('       Please install a DAT file before setting a sorting directory')
-                continue
-        config['sorting'][console] = os.path.realpath(splits[1])
-        is_modified = True
-    if is_modified:
-        config.save()
+            shortened_consoles[shortname] = full_console
+    if console not in datreader.consoles:
+        console = shortened_consoles.get(console)
+    if console is None:
+        print('ERROR: Unknown console:', splits[0])
+        print('       Please install a DAT file before setting a sorting directory')
+        return
+    print('Console:', console)
+    new_path = os.path.realpath(path)
+    old_path = config['sorting'].get(console)
+    if old_path:
+        print('Old path:', old_path)
+    print('New path:', new_path)
+    os.makedirs(new_path, exist_ok=True)
+    config['sorting'][console] = new_path
+    is_modified = True
+    config.save()
